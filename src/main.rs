@@ -33,7 +33,7 @@ impl Config {
                 "-c" => acc.set_show_creation(),
                 "-m" => acc.set_show_modification(),
                 "-a" => acc.set_show_print_all(),
-                sort if Regex::new("--sort=(d|n|s|c|m|!)+").unwrap().is_match(sort) => acc
+                sort if Regex::new("--sort=(d|n|s|c|m|r)+").unwrap().is_match(sort) => acc
                     .set_sort_by(sort.chars().skip(7).fold(
                         Vec::new(),
                         |mut acc: Vec<SortOption>, c: char| {
@@ -43,7 +43,7 @@ impl Config {
                                 's' => SortOption::Size,
                                 'c' => SortOption::Creation,
                                 'm' => SortOption::Modification,
-                                '!' => SortOption::Reverse,
+                                'r' => SortOption::Reverse,
                                 c => panic!("Unexpected Option {}", c),
                             });
                             return acc;
@@ -96,9 +96,9 @@ enum SortOption {
 impl SortOption {
     fn sort(self, mut vec: Vec<FileInfo>) -> Vec<FileInfo> {
         match self {
-            SortOption::IsDirectory => vec.sort_by_key(|a| a.is_dir()),
+            SortOption::IsDirectory => vec.sort_by_key(|a| !a.is_dir()),
             SortOption::Name => vec.sort_by_key(|a| a.name.to_lowercase()),
-            SortOption::Size => vec.sort_by_key(|a| a.size),
+            SortOption::Size => vec.sort_by_key(|a| 0 - a.size as i64),
             SortOption::Creation => vec.sort_by_key(|a| a.metadata.created().unwrap()),
             SortOption::Modification => vec.sort_by_key(|a| a.metadata.modified().unwrap()),
             SortOption::Reverse => vec.reverse(),
@@ -114,7 +114,24 @@ fn print_help() {
     println!("Show files in current directory\n");
 
     println!("Options:");
+    println!("  -h Header   Print header Information");
+    println!("  -s Size     Show Size");
+    println!("  -c Creation Show Creation Time");
+    println!("  -m Modification");
+    println!("              Show Time of last Modification");
     println!("  -a All      Print all Files");
+    println!("  --sort=<Sorting Option>+");
+    println!("              Sort output (multiple Options are valid)");
+
+    println!("\n\nSorting Options:");
+    println!("  d|D         Split Directories and Files");
+    println!("  n|N         Sort by name");
+    println!("  s|S         Sort by Size");
+    println!("  c|C         Sort by Creation Time");
+    println!("  m|M         Sort by Modification Time");
+    println!("  r           Reverse Output");
+    println!("\n\nDefault Arguments:");
+    println!("  s -s --sort=dn");
     std::process::exit(0);
 }
 
@@ -125,7 +142,8 @@ fn main() {
         }
     }
 
-    let config = Config::from_args(args());
+    let mut config = Config::from_args(args());
+    config.sort_by.reverse();
 
     let width = if let Some((width, _)) = term_size::dimensions() {
         width
