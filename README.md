@@ -18,3 +18,4 @@ I intend to accomplish this by
 -   clean up Code (It's a mess, you wouldn't belive it)
 -   properly parse arguments
     -   reversed sort, when passing uppercase letter as argument
+-   Include pictures of `show` in action in `README`
