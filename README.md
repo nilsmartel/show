@@ -19,3 +19,16 @@ I intend to accomplish this by
 -   properly parse arguments
     -   reversed sort, when passing uppercase letter as argument
 -   Include pictures of `show` in action in `README`
+
+
+# Example usage
+Display all files, sorted by name in reverse Order
+
+```sh
+show -a --sort=rn
+```
+
+# Showcase
+![](./img/All.png)
+![](./img/Sort Names.png)
+![](./img/Sort.png)
