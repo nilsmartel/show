@@ -33,8 +33,8 @@ impl Config {
                 "-c" => acc.set_show_creation(),
                 "-m" => acc.set_show_modification(),
                 "-a" => acc.set_show_print_all(),
-                sort if Regex::new("sort=(d|n|s|c|m|!)").unwrap().is_match(sort) => acc
-                    .set_sort_by(sort.chars().skip(5).fold(
+                sort if Regex::new("--sort=(d|n|s|c|m|!)+").unwrap().is_match(sort) => acc
+                    .set_sort_by(sort.chars().skip(7).fold(
                         Vec::new(),
                         |mut acc: Vec<SortOption>, c: char| {
                             acc.push(match c {
@@ -44,7 +44,7 @@ impl Config {
                                 'c' => SortOption::Creation,
                                 'm' => SortOption::Modification,
                                 '!' => SortOption::Reverse,
-                                _ => panic!("Unexpected Option"),
+                                c => panic!("Unexpected Option {}", c),
                             });
                             return acc;
                         },
@@ -163,7 +163,7 @@ fn main() {
         .zip((0..).map(|n| n & 1 == 0))
         .for_each(|(info, is_even)| {
             let output = format!(
-                "{}{} |{}{}|{}",
+                " {}{} |{}{}|{}",
                 info.name,
                 spaces(length_names - info.name.len()),
                 info.suffix.as_ref().unwrap_or(&"".to_string()),
