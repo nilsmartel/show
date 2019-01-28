@@ -133,18 +133,16 @@ fn main() {
         140
     };
 
-    let mut entries = read_dir(".")
+    let entries = read_dir(".")
         .unwrap()
         .map(|entry| FileInfo::from_dir_entry(entry.unwrap()))
         .filter(|entry| config.print_all || entry.name.chars().next().unwrap() != '.')
         .collect::<Vec<_>>();
 
-    entries.sort_by(|entry, other| match (entry.is_dir(), other.is_dir()) {
-        (true, true) => entry.name.to_lowercase().cmp(&other.name.to_lowercase()),
-        (true, false) => std::cmp::Ordering::Less,
-        (false, true) => std::cmp::Ordering::Greater,
-        (false, false) => entry.name.to_lowercase().cmp(&other.name.to_lowercase()),
-    });
+    let entries = config
+        .sort_by
+        .iter()
+        .fold(entries, |acc, config| config.sort(acc));
 
     let length_names = entries
         .iter()
