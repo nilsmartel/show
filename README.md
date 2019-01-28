@@ -2,7 +2,7 @@
 
 ### Human readable alternative to `ls`
 
-`show` is designed to create a more pleasant expirience than `ls` when searching through the current directory.
+`show` is an CLI designed to create a more pleasant expirience than `ls` when searching through the current directory.
 This is the one and only goal of `show`.
 I intend to accomplish this by
     -   Using differently colored Lines
