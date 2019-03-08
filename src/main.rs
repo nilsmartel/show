@@ -11,6 +11,7 @@ struct Config {
     show_modification: bool,
     print_all: bool,
     sort_by: Vec<SortOption>,
+    dir: String,
 }
 
 impl Config {
@@ -22,12 +23,20 @@ impl Config {
             show_modification: false,
             print_all: false,
             sort_by: vec![SortOption::IsDirectory, SortOption::Name],
+            dir: String::from("."),
         }
     }
 
-    fn from_args(args: std::env::Args) -> Config {
-        args.skip(1)
-            .fold(Config::new(), |acc, arg| match arg.as_str() {
+    fn from_args() -> Config {
+        let (n, dir) = if is_dir_name(std::env::args().nth(1).unwrap_or("-".to_string())) {
+            (2, String::from(std::env::args().nth(1).unwrap()))
+        } else {
+            (1, String::from("."))
+        };
+
+        std::env::args()
+            .skip(n)
+            .fold(Config::new().set_dir(dir), |acc, arg| match arg.as_str() {
                 "-h" => acc.set_show_header(),
                 "-s" => acc.set_show_size(),
                 "-c" => acc.set_show_creation(),
@@ -50,7 +59,10 @@ impl Config {
                         },
                     )),
                 arg => {
-                    eprintln!("Unknown paramter {}", arg);
+                    eprintln!(
+                        "Unknown paramter {}\n Hint: might just not be a valid file",
+                        arg
+                    );
                     std::process::exit(0);
                 }
             })
@@ -65,20 +77,29 @@ impl Config {
         self.show_header = true;
         self
     }
+
     fn set_show_size(mut self) -> Config {
         self.show_size = true;
         self
     }
+
     fn set_show_creation(mut self) -> Config {
         self.show_creation = true;
         self
     }
+
     fn set_show_modification(mut self) -> Config {
         self.show_modification = true;
         self
     }
+
     fn set_show_print_all(mut self) -> Config {
         self.print_all = true;
+        self
+    }
+
+    fn set_dir(mut self, dir: String) -> Config {
+        self.dir = dir;
         self
     }
 }
@@ -111,9 +132,10 @@ impl SortOption {
 fn print_help() {
     println!("s: Show Files");
 
-    println!("Show files in current directory\n");
+    println!("Show files in directory\n");
 
     println!("Options:");
+    println!("  <dir>       Directors to search");
     println!("  -h Header   Print header Information");
     println!("  -s Size     Show Size");
     println!("  -c Creation Show Creation Time");
@@ -142,7 +164,7 @@ fn main() {
         }
     }
 
-    let mut config = Config::from_args(args());
+    let mut config = Config::from_args();
     config.sort_by.reverse();
 
     let width = if let Some((width, _)) = term_size::dimensions() {
@@ -151,7 +173,7 @@ fn main() {
         140
     };
 
-    let entries = read_dir(".")
+    let entries = read_dir(&config.dir)
         .unwrap()
         .map(|entry| FileInfo::from_dir_entry(entry.unwrap()))
         .filter(|entry| config.print_all || entry.name.chars().next().unwrap() != '.')
@@ -275,4 +297,8 @@ fn split_suffix(name: String) -> (String, Option<String>) {
 
 fn spaces(n: usize) -> String {
     (0..n).map(|_| ' ').collect()
+}
+
+fn is_dir_name(s: String) -> bool {
+    std::path::Path::new(&s).is_dir()
 }

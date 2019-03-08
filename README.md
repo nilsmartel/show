@@ -28,6 +28,12 @@ Display all files, sorted by name in reverse Order
 show -a --sort=rn
 ```
 
+Display all files in Directory `abc`
+```sh
+show abc -a
+```
+
+
 # Showcase
 ![](./img/All.png)
 ![](./img/Sort Names.png)
